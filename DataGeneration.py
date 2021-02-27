@@ -2,6 +2,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+DEFAULT_PARAMS = {
+    'beta': np.array([1, 1]).T,
+    'cov': np.array([[1, 0.5],[0.5, 1]]),
+    'sigma': 1,
+    'n': 200    
+}
+
 def linearRegression_normal(beta, cov, sigma, n):
     """
     Draw n observations from a linear regression
@@ -23,6 +30,10 @@ def linearRegression_normal(beta, cov, sigma, n):
 
 
     return X, Y
+
+def default_data():
+    d = DEFAULT_PARAMS
+    return linearRegression_normal(d['beta'], d['cov'], d['sigma'], d['n'])
 
 
 if __name__=="__main__":
