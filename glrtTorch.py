@@ -38,8 +38,9 @@ def getBoundary(modelFn,X,y,idx,ucb,obj=lowCoefObj,reduction=np.min,lmbds=np.log
         idxObj = partial(obj,idx,lmbd)
         trainWithAttributions(IGModel,Xtorch,ytorch,idxObj,lossfunc,**fit_kwargs)
         preds, attribs = IGModel(Xtorch,shap_values=True)
+        global_attribs = attribs.abs().mean(0)
         mse = lossfunc(ytorch,preds.flatten())
-        attrib = attribs.flatten()[idx]
+        attrib = global_attribs.flatten()[idx]
         coef = WrapperModel.linear_layer.weight.detach().numpy().flatten()
         bias = WrapperModel.linear_layer.bias.detach().item()
         mses.append(mse.item())
@@ -47,8 +48,8 @@ def getBoundary(modelFn,X,y,idx,ucb,obj=lowCoefObj,reduction=np.min,lmbds=np.log
         coefs.append(coef)
         biases.append(bias)
         
-    mses, attributions = np.array(mses), np.array(attributions)
-    return reduction(attributions[mses<=ucb]), (mses,attribs,coefs,biases)
+    mses, attributions, coefs, biases = np.array(mses), np.array(attributions), np.array(coefs), np.array(biases)
+    return reduction(attributions[mses<=ucb]), (mses, attributions, coefs, biases)
     
 def trainWithAttributions(model,X,y,obj,lossfunc,lr=0.001,max_iter=1000):
         train_scores=[]
