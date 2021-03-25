@@ -1,7 +1,7 @@
 # Compute integrated gradients for the special case of linear models
 
 import numpy as np
-from analyticLinearRegressionCIs import analyticLinearCis
+from .analyticLinearRegressionCIs import analyticLinearCis
 
 def integratedGradients_Linear(coefficients, X):
     """

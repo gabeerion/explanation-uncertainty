@@ -3,7 +3,7 @@
 from functools import partial
 import torch
 import numpy as np
-from glrt_stat import bootstrapGLRTcis
+from .glrt_stat import bootstrapGLRTcis
 from attributionpriors.pytorch_ops import ExpectedGradientsModel
 
 def lowCoefObj(idx,lmbd,llh,global_attributions):
