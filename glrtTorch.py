@@ -14,7 +14,7 @@ def MSE(y, yPred):
     return np.mean((y - yPred)**2)
 
 def glrtTorchCis(modelFn,X,y,alpha=0.05,bootstrap_kwargs={},search_kwargs={},fit_kwargs={}):
-    lcb_LR, ucb_LR = bootstrapGLRTcis(modelFn, X, y, MSE, alpha=0.05, **bootstrap_kwargs)
+    lcb_LR, ucb_LR = bootstrapGLRTcis(modelFn, X, y, MSE, alpha=alpha, **bootstrap_kwargs)
     lcbs, ucbs = [], []
     lcb_all_results, ucb_all_results = [], []
     for idx in range(X.shape[1]):
