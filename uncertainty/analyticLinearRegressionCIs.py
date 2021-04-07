@@ -32,3 +32,37 @@ def analyticLinearCis(fittedModel, X, y, alpha=0.05):
     ucbs = fittedCoefs + intervalSizes
 
     return lcbs, ucbs
+
+
+def analyticLinearCis_GLRT(fittedModel, X, y, alpha=0.05):
+    """
+    Computes confidence intervals on betaHat using the analytic GLRT for the linear models case.
+    Working from the notes in https://nowak.ece.wisc.edu/ece830/ece830_lecture10.pdf (example 3.1)
+    AUUUGH, this is wrong, I think it's specifically for testing against 0, we have to redo for general theta
+    observe that the log LR is
+       1/sigma^2 (beta^T X^T y - 1/2 beta^T X^T X beta)  ~  ChiSq(d)
+    (although it's probably ChiSq(d-1) since we'll have to estimate sigma^2)
+    So we can get upper and lower 1-alpha confidence bounds for ChiSq(d), and write
+       1/sigma^2 (beta^T X^T y - 1/2 beta^T X^T X beta) < u
+    Solve for beta,
+       beta^T X^T y - 1/2 beta^T X^T X beta < u sigma^2
+    This is a quadratic form... it's solved when the derivative is zero:
+       d/dbeta beta^T X^T y - 1/2 beta^T X^T X beta - u sigma^2 = 0
+       d/dbeta beta^T X^T y - 1/2 beta^T X^T X beta = 0
+       X^T y - X^T X beta = 0
+       X^T y = X^T X beta
+       (X^T X)^{-1} X^T y = beta
+    lol, ok, so that's the MLE, and we have
+       beta^T X^T y - 1/2 beta^T X^T X beta < u sigma^2
+       y^T X (X^T X)^{-1} X^T y - 1/2 y^T X (X^T X)^{-1} X^T X (X^T X)^{-1} X^T y < u sigma^2
+       y^T X (X^T X)^{-1} X^T y - 1/2 y^T X (X^T X)^{-1} X^T y < u sigma^2
+       1/2 y^T X (X^T X)^{-1} X^T y < u sigma^2
+    And, likewise, for the lower bound we have
+       1/2 y^T X (X^T X)^{-1} X^T y > l sigma^2
+    where l is the
+    :param fittedModel:
+    :param X:
+    :param y:
+    :param alpha:
+    :return:
+    """
