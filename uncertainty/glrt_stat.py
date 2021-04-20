@@ -14,23 +14,35 @@ import numpy as np
 
 def bootstrapGLRTcis(modelFn, X, y, logLikFn, alpha=0.05, replicates=1000):
     """
-    Bootstrap a two-sided confidence interval at level alpha on the likelihood of the maximum likelihood solution from
-    fitting model modelFn to data.
+    Bootstrap a one-sided confidence interval at level alpha on the log likelihood of the maximum likelihood solution
+    to the model fitted with modelFn on data from whatever distribution generated X and y
+    Do this by first bootstrapping the negative log of the GLRT test statistic
+        log max_theta L(theta) - log L(theta0) 
+    where theta0 is the MLE on the original data set. After you have the alpha-percentile of that distribution, call it
+    c_alpha, and we know that 
+        P_{Y|X ~ H0} (log max_theta L(theta) - log L(theta0)  > c_alpha) < alpha.
+    Finally, to report a floor on the likelihood with the data (X, y), return
+        c_alpha + log L(theta0 | X, y)
+    
     :param modelFn: A function that, when called with no arguments, returns an object  with a function .fit(X, y) and
         a function .predict(XPred) that returns yPred.
         An example would be modelFn = LinearRegression
-    :param X: We will sample with replacement from (X, y) to generate bootstrap replicates. This should probably be
-        a validation set.
+    :param X: We will sample with replacement from (X, y) to generate bootstrap replicates. This should be the data set
+              you're fitting to (if we change this in the future, no problem, but we'll need to return Lambda instead of
+              the minimum plausible likelihood)
     :param y: See X
     :param logLikFn: a function that takes (y, yPred) and produces the log likelihood (eg, the MSE)
     :param alpha: The desired Type 1 error rate for the confidence intervals
     :param replicates: The number of bootstrap replicates desired. For smaller alpha, this needs to increase.
-    :return: Lower and upper bounds for the alpha-confidence interval on the log likelihood of the fitted model,
-        as a tuple
+    :return: A lower bound for the alpha-confidence interval on the log likelihood of the fitted model
     """
     rng = np.random.default_rng()
     n, d = X.shape
-    logLikValues = np.zeros(replicates)
+    lambdaVals = np.zeros(replicates)
+    
+    # Get the original MLE solution
+    model0 = modelFn()
+    model0.fit(X, y)
     for i in range(replicates):
         # Get the bootstrap samples
         idcs = rng.integers(low=0, high=n, size=n)
@@ -40,12 +52,14 @@ def bootstrapGLRTcis(modelFn, X, y, logLikFn, alpha=0.05, replicates=1000):
         # Get a clean model object and fit it to the bootstrapped data
         model = modelFn()
         model.fit(Xsample, ySample)
-        yFit = model.predict(Xsample)
-        logLikValues[i] = logLikFn(ySample, yFit)
+        lambdaVals[i] = logLikFn(ySample, model.predict(Xsample)) - logLikFn(ySample, model0.predict(Xsample))
 
     # Find the desired percentiles
-    logLikValues = np.sort(logLikValues)
-    lIndex = int(replicates*alpha/2.0)
-    uIndex = int(replicates*(1 - alpha/2.0))
+    lambdaVals = np.sort(lambdaVals)
+    lIndex = int(replicates*alpha)    
+    cAlpha = lambdaVals[lIndex]
+    
+    # Report the minimum plausible log likelihood (on this data set X, y)
+    logLik0 = logLikFn(y, model0.predict(X))
 
-    return logLikValues[lIndex], logLikValues[uIndex]
+    return cAlpha + logLik0
