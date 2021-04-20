@@ -38,7 +38,7 @@ def bootstrapGLRTcis(modelFn, X, y, nllFn, alpha=0.05, replicates=1000):
     """
     rng = np.random.default_rng()
     n, d = X.shape
-    lambdaVals = np.zeros(replicates)
+    negLogLambdas = np.zeros(replicates)
     
     # Get the original MLE solution
     model0 = modelFn()
@@ -52,12 +52,12 @@ def bootstrapGLRTcis(modelFn, X, y, nllFn, alpha=0.05, replicates=1000):
         # Get a clean model object and fit it to the bootstrapped data
         model = modelFn()
         model.fit(Xsample, ySample)
-        lambdaVals[i] = -1*(nllFn(ySample, model.predict(Xsample)) - nllFn(ySample, model0.predict(Xsample)))
+        negLogLambdas[i] = -1*(nllFn(ySample, model.predict(Xsample)) - nllFn(ySample, model0.predict(Xsample)))
 
     # Find the desired percentiles
-    lambdaVals = np.sort(lambdaVals)
-    lIndex = int(replicates*alpha)
-    cAlpha = lambdaVals[lIndex]
+    negLogLambdas = np.sort(negLogLambdas)
+    lIndex = int(replicates*(1-alpha))
+    cAlpha = negLogLambdas[lIndex]
     
     # Report the minimum plausible log likelihood (on this data set X, y)
     logLik0 = logLikFn(y, model0.predict(X))
