@@ -3,7 +3,7 @@ import torch
 
 
 class TorchLinear(object):
-    def __init__(self,lr=0.01,max_iter=1000):
+    def __init__(self,lr=0.01,max_iter=1000,fit_intercept=True):
         """
         Initialize.
         :param lr: float, learning rate
@@ -11,13 +11,14 @@ class TorchLinear(object):
         """
         self.lr=lr
         self.max_iter=max_iter
+        self.fit_intercept = fit_intercept
         
     def _init_model(self,d):
         """
         Build torch model and store as self.linear_layer.
         :param d: int, dimensionality of input
         """
-        self.linear_layer = torch.nn.Linear(in_features=d,out_features=1,bias=True)
+        self.linear_layer = torch.nn.Linear(in_features=d,out_features=1,bias=self.fit_intercept)
         return torch.nn.Sequential(
             self.linear_layer
         )
@@ -54,7 +55,7 @@ class TorchLinear(object):
         self._fit_internal(self.model,self.optimizer,Xtorch,ytorch)
         
         self.coef_ = self.linear_layer.weight.detach().numpy().flatten()
-        self.intercept_ = self.linear_layer.bias.detach().item()
+        self.intercept_ = self.linear_layer.bias.detach().item() if self.fit_intercept else 0.0
         
         return self
     

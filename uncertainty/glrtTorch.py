@@ -49,7 +49,7 @@ def getBoundary(modelFn,X,y,idx,ucb,obj=lowCoefObj,reduction=np.min,lmbds=np.log
         mse = lossfunc(ytorch,preds.flatten())
         attrib = global_attribs.flatten()[idx]
         coef = WrapperModel.linear_layer.weight.detach().numpy().flatten()
-        bias = WrapperModel.linear_layer.bias.detach().item()
+        bias = WrapperModel.linear_layer.bias.detach().item() if WrapperModel.linear_layer.bias is not None else 0.0
         mses.append(mse.item())
         attributions.append(attrib.item())
         coefs.append(coef)
@@ -86,7 +86,7 @@ def getBoundaryCoef(modelFn,X,y,idx,ucb,obj=lowCoefObj,reduction=np.min,lmbds=np
         preds = TorchModel(Xtorch)
         mse = lossfunc(ytorch,preds.flatten())
         coef = WrapperModel.linear_layer.weight.detach().numpy().flatten()
-        bias = WrapperModel.linear_layer.bias.detach().item()
+        bias = WrapperModel.linear_layer.bias.detach().item() if WrapperModel.linear_layer.bias is not None else 0.0
         attrib = coef[idx]
         mses.append(mse.item())
         attributions.append(attrib.item())
