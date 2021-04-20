@@ -34,7 +34,7 @@ def bootstrapGLRTcis(modelFn, X, y, nllFn, alpha=0.05, replicates=1000):
     :param nllFn: a function that takes (y, yPred) and produces the negative log likelihood (eg, the MSE)
     :param alpha: The desired Type 1 error rate for the confidence intervals
     :param replicates: The number of bootstrap replicates desired. For smaller alpha, this needs to increase.
-    :return: An upper bound for the alpha-confidence interval on the log likelihood of the fitted model
+    :return: An upper bound for the alpha-confidence interval on the negative log likelihood
     """
     rng = np.random.default_rng()
     n, d = X.shape
@@ -59,7 +59,8 @@ def bootstrapGLRTcis(modelFn, X, y, nllFn, alpha=0.05, replicates=1000):
     lIndex = int(replicates*(1-alpha))
     cAlpha = negLogLambdas[lIndex]
     
-    # Report the minimum plausible log likelihood (on this data set X, y)
+    # As a convenience, return the upper confidence bound on the negative log likelihood
+    # (which is offset from the nll of the MLE on this data X, y)
     nll0 = nllFn(y, model0.predict(X))
 
     return nll0 + cAlpha

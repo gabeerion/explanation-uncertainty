@@ -15,7 +15,7 @@ def MSE(y, yPred):
 
 def glrtTorchCis(modelFn,X,y,alpha=0.05,citype='attribs',bootstrap_kwargs={},search_kwargs={},fit_kwargs={}):
     #lcb_LR, ucb_LR = bootstrapGLRTcis(modelFn, X, y, MSE, alpha=alpha, **bootstrap_kwargs)
-    lcb_LR = bootstrapGLRTcis(modelFn, X, y, MSE, alpha=alpha, **bootstrap_kwargs)
+    ucb_LR = bootstrapGLRTcis(modelFn, X, y, MSE, alpha=alpha, **bootstrap_kwargs)
     lcbs, ucbs = [], []
     lcb_all_results, ucb_all_results = [], []
     for idx in range(X.shape[1]):
@@ -31,7 +31,7 @@ def glrtTorchCis(modelFn,X,y,alpha=0.05,citype='attribs',bootstrap_kwargs={},sea
         lcb_all_results.append(lcb_Results)
         ucb_all_results.append(ucb_Results)
     #return np.array(lcbs), np.array(ucbs), lcb_all_results, ucb_all_results, lcb_LR, ucb_LR
-    return np.array(lcbs), np.array(ucbs), lcb_all_results, ucb_all_results, lcb_LR
+    return np.array(lcbs), np.array(ucbs), lcb_all_results, ucb_all_results, ucb_LR
 
 def getBoundary(modelFn,X,y,idx,ucb,obj=lowCoefObj,reduction=np.min,lmbds=np.logspace(-10,10,101),lossfunc=torch.nn.functional.mse_loss,fit_kwargs={}):
     Xtorch = torch.Tensor(X)
