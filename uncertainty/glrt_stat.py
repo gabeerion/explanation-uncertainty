@@ -60,6 +60,6 @@ def bootstrapGLRTcis(modelFn, X, y, nllFn, alpha=0.05, replicates=1000):
     cAlpha = negLogLambdas[lIndex]
     
     # Report the minimum plausible log likelihood (on this data set X, y)
-    logLik0 = logLikFn(y, model0.predict(X))
+    logLik0 = -1*nllFn(y, model0.predict(X))
 
     return cAlpha + logLik0
