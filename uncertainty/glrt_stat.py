@@ -12,7 +12,7 @@
 
 import numpy as np
 
-def bootstrapGLRTcis(modelFn, X, y, logLikFn, alpha=0.05, replicates=1000):
+def bootstrapGLRTcis(modelFn, X, y, nllFn, alpha=0.05, replicates=1000):
     """
     Bootstrap a one-sided confidence interval at level alpha on the log likelihood of the maximum likelihood solution
     to the model fitted with modelFn on data from whatever distribution generated X and y
@@ -31,7 +31,7 @@ def bootstrapGLRTcis(modelFn, X, y, logLikFn, alpha=0.05, replicates=1000):
               you're fitting to (if we change this in the future, no problem, but we'll need to return Lambda instead of
               the minimum plausible likelihood)
     :param y: See X
-    :param logLikFn: a function that takes (y, yPred) and produces the log likelihood (eg, the MSE)
+    :param nllFn: a function that takes (y, yPred) and produces the negative log likelihood (eg, the MSE)
     :param alpha: The desired Type 1 error rate for the confidence intervals
     :param replicates: The number of bootstrap replicates desired. For smaller alpha, this needs to increase.
     :return: A lower bound for the alpha-confidence interval on the log likelihood of the fitted model
@@ -52,11 +52,11 @@ def bootstrapGLRTcis(modelFn, X, y, logLikFn, alpha=0.05, replicates=1000):
         # Get a clean model object and fit it to the bootstrapped data
         model = modelFn()
         model.fit(Xsample, ySample)
-        lambdaVals[i] = logLikFn(ySample, model.predict(Xsample)) - logLikFn(ySample, model0.predict(Xsample))
+        lambdaVals[i] = -1*(nllFn(ySample, model.predict(Xsample)) - nllFn(ySample, model0.predict(Xsample)))
 
     # Find the desired percentiles
     lambdaVals = np.sort(lambdaVals)
-    lIndex = int(replicates*alpha)    
+    lIndex = int(replicates*alpha)
     cAlpha = lambdaVals[lIndex]
     
     # Report the minimum plausible log likelihood (on this data set X, y)
