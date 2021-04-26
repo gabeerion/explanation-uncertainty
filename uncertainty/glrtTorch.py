@@ -7,13 +7,53 @@ from .glrt_stat import bootstrapGLRTcis
 from attributionpriors.pytorch_ops import ExpectedGradientsModel
 
 def lowCoefObj(idx,lmbd,llh,global_attributions):
+    """
+    Objective to minimize loss and *minimize* attribution to the feature at 'idx'.
+    :param idx: Feature index whose attribution should be minimized
+    :param lmbd: Strength of attribution penalization
+    :param llh: Loss; positive, where lower is a better value
+    :param global_attributions: Vector of attributions for each feature
+    
+    :return: A scalar total loss
+    """
     return llh+lmbd*global_attributions[idx]
 def highCoefObj(idx,lmbd,llh,global_attributions):
+    """
+    Objective to minimize loss and *maximize* attribution to the feature at 'idx'.
+    :param idx: Feature index whose attribution should be maximized
+    :param lmbd: Strength of attribution penalization
+    :param llh: Loss; positive, where lower is a better value
+    :param global_attributions: Vector of attributions for each feature
+    
+    :return: A scalar total loss
+    """
     return llh-lmbd*global_attributions[idx]
+
 def MSE(y, yPred):
+    """
+    Mean Squared Error objective
+    :param y: True labels
+    :param yPred: Predictions
+    
+    :return: A scalar MSE loss
+    """
     return np.mean((y - yPred)**2)
 
 def glrtTorchCis(modelFn,X,y,alpha=0.05,citype='attribs',bootstrap_kwargs={},search_kwargs={},fit_kwargs={}):
+    """
+    High level function to give confidence intervals on model attributions
+    :param modelFn: Function with no arguments; returns a model
+    :param X: Covariates
+    :param y: Labels
+    :param alpha: Probability of allowing a type I error
+    :param citype: One of 'attribs' or 'coefs': Whether to return CIs on IG attributions or raw linear
+        regression coefficients
+    :param bootstrap_kwargs: Keyword arguments to the bootstrapGLRTcis bootstrapping function
+    :param search_kwargs: Keyword arguments to the getBoundaryCoef search function
+    :param fit_kwargs: Keyword arguments to the model fit function
+    
+    :return: A scalar total loss
+    """
     #lcb_LR, ucb_LR = bootstrapGLRTcis(modelFn, X, y, MSE, alpha=alpha, **bootstrap_kwargs)
     ucb_LR = bootstrapGLRTcis(modelFn, X, y, MSE, alpha=alpha, **bootstrap_kwargs)
     lcbs, ucbs = [], []
