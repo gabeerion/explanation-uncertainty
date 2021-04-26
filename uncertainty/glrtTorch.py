@@ -52,7 +52,7 @@ def glrtTorchCis(modelFn,X,y,alpha=0.05,citype='attribs',bootstrap_kwargs={},sea
     :param search_kwargs: Keyword arguments to the getBoundaryCoef search function
     :param fit_kwargs: Keyword arguments to the model fit function
     
-    :return: A scalar total loss
+    :return: array of lower bounds, array of upper bounds, additional results for debugging
     """
     #lcb_LR, ucb_LR = bootstrapGLRTcis(modelFn, X, y, MSE, alpha=alpha, **bootstrap_kwargs)
     ucb_LR = bootstrapGLRTcis(modelFn, X, y, MSE, alpha=alpha, **bootstrap_kwargs)
@@ -74,6 +74,23 @@ def glrtTorchCis(modelFn,X,y,alpha=0.05,citype='attribs',bootstrap_kwargs={},sea
     return np.array(lcbs), np.array(ucbs), lcb_all_results, ucb_all_results, ucb_LR
 
 def getBoundary(modelFn,X,y,idx,ucb,obj=lowCoefObj,reduction=np.min,lmbds=np.logspace(-10,10,101),lossfunc=torch.nn.functional.mse_loss,fit_kwargs={}):
+    """
+    Use attribution priors code to search for boundaries on attributions
+    :param modelFn: Function with no arguments; returns a model
+    :param X: Covariates
+    :param y: Labels
+    :param idx: Index of feature to search attributions for
+    :param obj: Loss function combining label loss and attribution loss. Existing options lowCoefObj and highCoefObj
+        will find lower and upper bounds on feature attribution, respectively
+    :param reduction: Function to choose from among "acceptable-quality" attribution values. np.min gives 
+        lower bound, and np.max gives upper bound, respectively
+    :param lmbds: Attribution prior penalties to search; more and finer grid gives more accurate results
+    :param lossfunc: Torch loss taking labels and predictions
+    :param fit_kwargs: Keyword arguments to the model fit function
+    
+    :return: Scalar lower boundary value of attribution, plus tuple of
+        (all MSEs, attributions, regression coefs, and biases)
+    """
     Xtorch = torch.Tensor(X)
     ytorch = torch.Tensor(y)
     Rtorch = torch.ones_like(Xtorch)*Xtorch.mean(0).reshape(1,-1)
@@ -99,6 +116,9 @@ def getBoundary(modelFn,X,y,idx,ucb,obj=lowCoefObj,reduction=np.min,lmbds=np.log
     return reduction(attributions[mses<=ucb]), (mses, attributions, coefs, biases)
     
 def trainWithAttributions(model,X,y,obj,lossfunc,lr=0.001,max_iter=1000):
+    """
+    Train with model, data, objective, and attribution prior penalty
+    """
         train_scores=[]
         opt = torch.optim.SGD(model.parameters(),lr=lr)
         for i in range(max_iter):
@@ -113,6 +133,23 @@ def trainWithAttributions(model,X,y,obj,lossfunc,lr=0.001,max_iter=1000):
             opt.step()
 
 def getBoundaryCoef(modelFn,X,y,idx,ucb,obj=lowCoefObj,reduction=np.min,lmbds=np.logspace(-10,10,101),lossfunc=torch.nn.functional.mse_loss,fit_kwargs={}):
+    """
+    Use attribution priors code to search for boundaries on coefficients
+    :param modelFn: Function with no arguments; returns a model
+    :param X: Covariates
+    :param y: Labels
+    :param idx: Index of feature to search attributions for
+    :param obj: Loss function combining label loss and attribution loss. Existing options lowCoefObj and highCoefObj
+        will find lower and upper bounds on feature attribution, respectively
+    :param reduction: Function to choose from among "acceptable-quality" attribution values. np.min gives 
+        lower bound, and np.max gives upper bound, respectively
+    :param lmbds: Attribution prior penalties to search; more and finer grid gives more accurate results
+    :param lossfunc: Torch loss taking labels and predictions
+    :param fit_kwargs: Keyword arguments to the model fit function
+    
+    :return: Scalar lower boundary value of attribution, plus tuple of
+        (all MSEs, attributions, regression coefs, and biases)
+    """
     Xtorch = torch.Tensor(X)
     ytorch = torch.Tensor(y)
     Rtorch = torch.ones_like(Xtorch)*Xtorch.mean(0).reshape(1,-1)
@@ -137,6 +174,9 @@ def getBoundaryCoef(modelFn,X,y,idx,ucb,obj=lowCoefObj,reduction=np.min,lmbds=np
     return reduction(attributions[mses<=ucb]), (mses, attributions, coefs, biases)
     
 def trainWithCoefs(model,X,y,obj,lossfunc,lr=0.001,max_iter=1000):
+    """
+    Train with model, data, objective, and penalty on coef values
+    """
         train_scores=[]
         opt = torch.optim.SGD(model.parameters(),lr=lr)
         for i in range(max_iter):
