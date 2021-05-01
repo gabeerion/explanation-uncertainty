@@ -119,18 +119,18 @@ def trainWithAttributions(model,X,y,obj,lossfunc,lr=0.001,max_iter=1000):
     """
     Train with model, data, objective, and attribution prior penalty
     """
-        train_scores=[]
-        opt = torch.optim.SGD(model.parameters(),lr=lr)
-        for i in range(max_iter):
-            opt.zero_grad()
-            preds, attribs = model(X,shap_values=True)
-            mse = lossfunc(preds.flatten(),y)
-            global_attribs = attribs.abs().mean(0)
-            total_obj = obj(mse,global_attribs)
-            
-            train_scores.append((total_obj.item(),mse.item()))
-            total_obj.backward()
-            opt.step()
+    train_scores=[]
+    opt = torch.optim.SGD(model.parameters(),lr=lr)
+    for i in range(max_iter):
+        opt.zero_grad()
+        preds, attribs = model(X,shap_values=True)
+        mse = lossfunc(preds.flatten(),y)
+        global_attribs = attribs.abs().mean(0)
+        total_obj = obj(mse,global_attribs)
+
+        train_scores.append((total_obj.item(),mse.item()))
+        total_obj.backward()
+        opt.step()
 
 def getBoundaryCoef(modelFn,X,y,idx,ucb,obj=lowCoefObj,reduction=np.min,lmbds=np.logspace(-10,10,101),lossfunc=torch.nn.functional.mse_loss,fit_kwargs={}):
     """
@@ -177,15 +177,15 @@ def trainWithCoefs(model,X,y,obj,lossfunc,lr=0.001,max_iter=1000):
     """
     Train with model, data, objective, and penalty on coef values
     """
-        train_scores=[]
-        opt = torch.optim.SGD(model.parameters(),lr=lr)
-        for i in range(max_iter):
-            opt.zero_grad()
-            preds = model(X)
-            mse = lossfunc(preds.flatten(),y)
-            global_attribs = model.coefs
-            total_obj = obj(mse,global_attribs)
-            
-            train_scores.append((total_obj.item(),mse.item()))
-            total_obj.backward()
-            opt.step()
+    train_scores=[]
+    opt = torch.optim.SGD(model.parameters(),lr=lr)
+    for i in range(max_iter):
+        opt.zero_grad()
+        preds = model(X)
+        mse = lossfunc(preds.flatten(),y)
+        global_attribs = model.coefs
+        total_obj = obj(mse,global_attribs)
+
+        train_scores.append((total_obj.item(),mse.item()))
+        total_obj.backward()
+        opt.step()
